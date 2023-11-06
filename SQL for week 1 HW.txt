@@ -1,0 +1,81 @@
+-- Ingest data into central_park_weather
+CREATE TABLE IF NOT EXISTS central_park_weather (
+    STATION VARCHAR,
+    NAME VARCHAR,
+    DATE DATE,
+    AWND DOUBLE,
+    PRCP DOUBLE,
+    SNOW DOUBLE,
+    SNWD DOUBLE,
+    TMAX DOUBLE,
+    TMIN DOUBLE
+);
+COPY central_park_weather FROM 'C:/Users/cesar/data/central_park_weather.csv' WITH (FORMAT csv, HEADER true);
+
+-- Ingest data into citibike_tripdata
+CREATE TABLE IF NOT EXISTS citibike_tripdata (
+    tripduration INT,
+    starttime TIMESTAMP,
+    stoptime TIMESTAMP,
+    start_station_id INT,
+    start_station_name VARCHAR,
+    start_station_latitude DOUBLE,
+    start_station_longitude DOUBLE,
+    end_station_id INT,
+    end_station_name VARCHAR,
+    end_station_latitude DOUBLE,
+    end_station_longitude DOUBLE,
+    bikeid INT,
+    usertype VARCHAR,
+    birth_year INT,
+    gender INT,
+    ride_id VARCHAR
+);
+COPY citibike_tripdata FROM 'C:/Users/cesar/data/citibike-tripdata.csv' WITH (FORMAT csv, HEADER true);
+
+-- Ingest data into fhv_tripdata
+CREATE TABLE IF NOT EXISTS fhv_tripdata AS SELECT * FROM read_parquet('C:/Users/cesar/data/taxi/fhv_tripdata.parquet');
+
+-- Ingest data into fhvhv_tripdata
+CREATE TABLE IF NOT EXISTS fhvhv_tripdata AS SELECT * FROM read_parquet('C:/Users/cesar/data/taxi/fhvhv_tripdata.parquet');
+
+-- Ingest data into green_tripdata
+CREATE TABLE IF NOT EXISTS green_tripdata AS SELECT * FROM read_parquet('C:/Users/cesar/data/taxi/green_tripdata.parquet');
+
+-- Ingest data into yellow_tripdata
+CREATE TABLE IF NOT EXISTS yellow_tripdata AS SELECT * FROM read_parquet('C:/Users/cesar/data/taxi/yellow_tripdata.parquet');
+-- Verify row counts for each table
+SELECT 'central_park_weather' AS table_name, COUNT(*) AS row_count FROM central_park_weather;
+SELECT 'citibike_tripdata' AS table_name, COUNT(*) AS row_count FROM citibike_tripdata;
+SELECT 'fhv_tripdata' AS table_name, COUNT(*) AS row_count FROM fhv_tripdata;
+SELECT 'fhvhv_tripdata' AS table_name, COUNT(*) AS row_count FROM fhvhv_tripdata;
+SELECT 'green_tripdata' AS table_name, COUNT(*) AS row_count FROM green_tripdata;
+SELECT 'yellow_tripdata' AS table_name, COUNT(*) AS row_count FROM yellow_tripdata;
+.echo on
+-- Dump raw schemas for each table
+SHOW TABLES;
+DESCRIBE central_park_weather;
+DESCRIBE citibike_tripdata;
+DESCRIBE fhv_tripdata;
+DESCRIBE fhvhv_tripdata;
+DESCRIBE green_tripdata;
+DESCRIBE yellow_tripdata;
+# This Python script connects to the DuckDB database and prints out table names and row counts
+import duckdb
+
+# Connect to the DuckDB database
+conn = duckdb.connect('C:/Users/cesar/cmu-96797-demo/my_database.duckdb')
+
+# List of tables to check
+tables = ['central_park_weather', 'citibike_tripdata', 'fhv_tripdata', 'fhvhv_tripdata', 'green_tripdata', 'yellow_tripdata']
+
+# Open the output file
+with open('C:/Users/cesar/OneDrive/Desktop/data warehousing/tools/answers/raw_counts.txt', 'w') as f:
+    # Iterate over each table and get the row count
+    for table in tables:
+        row_count = conn.execute(f"SELECT COUNT(*) FROM {table}").fetchall()[0][0]
+        # Write the table name and row count to the file
+        f.write(f"{table} {row_count}\n")
+
+# Close the database connection
+conn.close()
